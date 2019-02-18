@@ -1,6 +1,6 @@
 # oer-bookr-backendnpm
 
-https://oer-bookr-api.herokuapp.com/books
+https://open-source-edu-books.herokuapp.com/
 
 ### Download Project Files
 
