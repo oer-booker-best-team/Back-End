@@ -13,20 +13,37 @@ router.get("/", (req, res) => {
   console.log("working");
 });
 
-router.get("/books", authenticate, (req, res) => {
-  db("books")
-    .then(books => {
-      if (books) {
-        res.status(200).json(books);
-      } else {
-        res.status(404).json({ error: "Books not found" });
-      }
-    })
-    .catch(err =>
-      res
-        .status(500)
-        .json({ error: "The books information could not be retrieved." })
-    );
+router.get("/books", authenticate, async (req, res) => {
+  try {
+    let books = await db("books");
+    if (books) {
+        books = books.map(async ({ user_id, ...book }) => {
+          try {
+            var adder = await db("users").where("id", user_id).first();
+          } catch(err) {
+            res.status(500).json({
+              error: "Something went wrong while retrieving books' singular information."
+            });
+          }
+
+          return {
+            ...book,
+            adder: adder.username
+          };
+        })
+      
+        Promise.all(books)
+          .then(books => {
+            res.status(200).json(books);
+          });
+    } else {
+      res.status(404).json({ error: "Books not found" });
+    }
+  } catch(err) {
+    res
+      .status(500)
+      .json({ error: "The books information could not be retrieved." })
+  }
 });
 
 router.get("/books/:id", authenticate, async (req, res) => {
@@ -42,15 +59,9 @@ router.get("/books/:id", authenticate, async (req, res) => {
 
   Promise.all([ book, reviews, adder ])
     .then(([ book, reviews, adder ]) => {
+      const { user_id, ...bookToSend } = book;
       res.status(200).json({
-        id: book.id,
-        title: book.title,
-        author: book.author,
-        publisher: book.publisher,
-        license: book.license,
-        subject: book.subject,
-        image: book.image,
-        link: book.link,
+        ...bookToSend,
         adder: adder.username,
         reviews: reviews.map(review => ({
           id: review.id,
@@ -67,29 +78,31 @@ router.get("/books/:id", authenticate, async (req, res) => {
     });
 });
 
-router.post("/books", (req, res) => {
-  const changes = req.body;
+router.post("/books", async (req, res) => {
+  const {
+    title, author, publisher, license, subject, image, adder
+  } = req.body;
 
   if (
-    !changes.title ||
-    !changes.author ||
-    !changes.publisher ||
-    !changes.license ||
-    !changes.subject ||
-    !changes.image
+    !title ||
+    !author ||
+    !publisher ||
+    !license ||
+    !subject ||
+    !image ||
+    !adder
   ) {
     res.status(422).json({ error: "Please fill in all categories!" });
   } else {
-    db.insert(changes)
+    user_id = await db("users").then(users => {
+      return users.find(user => user.username === adder).id;
+    });
+
+    db.insert({ title, author, publisher, license, subject, image, user_id })
       .into("books")
       .then(book => {
         res.status(201).json(book);
       })
-      .catch(err => {
-        res.status(500).json({
-          error: "There was an error while saving the book to the database."
-        });
-      });
   }
 });
 
