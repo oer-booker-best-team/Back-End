@@ -50,6 +50,7 @@ https://open-source-edu-books.herokuapp.com/
 | subject | String | Subject of the newly created book. |
 | image | String | Image of the newly created book. |
 | link | String | Link to the newly created book. |
+| user_id | Integer | ID of the user who added the book to the site. |
 | reviews | Array of Objects | Array of Reviews for the newly created book. |
 
 ### Reviews Data Model
