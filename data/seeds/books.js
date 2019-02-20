@@ -104,6 +104,9 @@ exports.seed = function(knex, Promise) {
           image: "https://tinyurl.com/yacruok6",
           link: "https://tinyurl.com/yckhh7z6"
         }
-      ]);
+      ].map(book => ({
+        ...book,
+        user_id: Math.round(Math.random() * 6)
+      })));
     });
 };

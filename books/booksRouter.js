@@ -15,9 +15,9 @@ router.get("/", (req, res) => {
 
 router.get("/books", authenticate, (req, res) => {
   db("books")
-    .then(book => {
-      if (book) {
-        res.status(200).json(book);
+    .then(books => {
+      if (books) {
+        res.status(200).json(books);
       } else {
         res.status(404).json({ error: "Books not found" });
       }
@@ -29,41 +29,41 @@ router.get("/books", authenticate, (req, res) => {
     );
 });
 
-router.get("/books/:id", authenticate, (req, res) => {
+router.get("/books/:id", authenticate, async (req, res) => {
   const { id } = req.params;
-  db.select()
-    .from("books")
-    .where({ id })
-    .then(books => {
-      db.select()
-        .from("reviews")
-        .where("book_id", id)
-        .then(reviews => {
-          const book = books[0];
-          res.status(200).json({
-            id: book.id,
-            title: book.title,
-            author: book.author,
-            publisher: book.publisher,
-            license: book.license,
-            subject: book.subject,
-            image: book.image,
-            link: book.link,
-            reviews: reviews.map(review => {
-              return {
-                id: review.id,
-                reviewer: review.reviewer,
-                review: review.review,
-                rating: review.rating
-              };
-            })
-          });
-        })
-        .catch(err => {
-          res
-            .status(500)
-            .json({ err: "The book and review could not be retrieved." });
-        });
+
+  try {
+    var book = await db("books").where({ id }).first();
+    var reviews = await db("reviews").where("book_id", id);
+    var adder = await db("users").where("id", book.user_id).first();
+  } catch(err) {
+    res.status(500).json({ err: "The book and reviews could not be retrieved." });
+  }
+
+  Promise.all([ book, reviews, adder ])
+    .then(([ book, reviews, adder ]) => {
+      res.status(200).json({
+        id: book.id,
+        title: book.title,
+        author: book.author,
+        publisher: book.publisher,
+        license: book.license,
+        subject: book.subject,
+        image: book.image,
+        link: book.link,
+        adder: adder.username,
+        reviews: reviews.map(review => ({
+          id: review.id,
+          reviewer: review.reviewer,
+          review: review.review,
+          rating: review.rating
+        }))
+      })
+    })
+    .catch(err => {
+      res
+        .status(500)
+        .json({ err: "The book and reviews could not be retrieved." });
     });
 });
 
