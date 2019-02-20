@@ -50,9 +50,9 @@ https://open-source-edu-books.herokuapp.com/
 | subject | String | Subject of the newly created book. |
 | image | String | Image of the newly created book. |
 | link | String | Link to the newly created book. |
-| user_id | Integer | ID of the user who added the book. | 
-^ *NOTE* : the API never lets the front-end interact with this directly; FE uses a field called | adder | containing the username.
 | reviews | Array of Objects | Array of Reviews for the newly created book. |
+| user_id | Integer | ID of the user who added the book. | 
+^ *NOTE* : the API never lets the front-end interact with this directly; FE uses a field called adder containing the username.
 
 ### Reviews Data Model
 
