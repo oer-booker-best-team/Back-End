@@ -15,6 +15,9 @@ exports.up = function(knex, Promise) {
     tbl.string("image", 500).notNullable();
 
     tbl.string("link", 500);
+
+    tbl.integer("user_id").unsigned().notNullable();
+    tbl.foreign("user_id").references("id").on("users");
   });
 };
 
